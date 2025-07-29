@@ -1,0 +1,107 @@
+{% extends "admin/base.html" %}
+
+{% block admin_content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Manage Delivery Locations</h1>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Add New Location</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('admin_locations') }}">
+                        <div class="input-group mb-3">
+                            <input type="text" class="form-control" name="name" placeholder="Location name" required>
+                            <input type="hidden" name="action" value="add">
+                            <button class="btn btn-primary" type="submit">Add</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Available Locations</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Location</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for location in locations %}
+                                <tr>
+                                    <td>{{ location.name }}</td>
+                                    <td>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input toggle-status" 
+                                                   type="checkbox" 
+                                                   id="status-{{ location._id }}"
+                                                   data-location-id="{{ location._id }}"
+                                                   {% if location.is_active %}checked{% endif %}>
+                                            <label class="form-check-label" for="status-{{ location._id }}">
+                                                {% if location.is_active %}Active{% else %}Inactive{% endif %}
+                                            </label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <form method="POST" action="{{ url_for('admin_locations') }}" 
+                                              onsubmit="return confirm('Are you sure?');"
+                                              class="d-inline">
+                                            <input type="hidden" name="action" value="delete">
+                                            <input type="hidden" name="location_id" value="{{ location._id }}">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="3" class="text-center">No locations found</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// AJAX for toggle status
+document.querySelectorAll('.toggle-status').forEach(checkbox => {
+    checkbox.addEventListener('change', function() {
+        const locationId = this.dataset.locationId;
+        const isActive = this.checked;
+        
+        fetch("{{ url_for('admin_locations') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `action=toggle&location_id=${locationId}&is_active=${isActive}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (!data.success) {
+                this.checked = !isActive; // Revert if failed
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

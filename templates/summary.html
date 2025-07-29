@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <h2 class="mb-4">Order Summary</h2>
+    
+    <div class="card mb-4">
+        <div class="card-header bg-white">
+            <h4 class="mb-0">Your Order</h4>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Item</th>
+                            <th>Type</th>
+                            <th class="text-end">Price</th>
+                            <th class="text-end">Qty</th>
+                            <th class="text-end">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in cart %}
+                        <tr>
+                            <td>{{ item.name }}</td>
+                            <td>
+                                <span class="badge 
+                                    {% if item.type == 'main' %}bg-primary
+                                    {% elif item.type == 'side' %}bg-secondary
+                                    {% else %}bg-info{% endif %}">
+                                    {{ item.type|title }}
+                                </span>
+                            </td>
+                            <td class="text-end">${{ "%.2f"|format(item.price) }}</td>
+                            <td class="text-end">{{ item.quantity }}</td>
+                            <td class="text-end">${{ "%.2f"|format(item.price * item.quantity) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delivery Information -->
+    <div class="card mb-4">
+        <div class="card-header bg-white">
+            <h4 class="mb-0">Delivery Information</h4>
+        </div>
+        <div class="card-body">
+            <p><strong>Location:</strong> {{ location }}</p>
+            <p><strong>Time Slot:</strong> {{ time_slot }}</p>
+        </div>
+    </div>
+
+    <!-- Payment Summary -->
+    <div class="card">
+        <div class="card-header bg-white">
+            <h4 class="mb-0">Payment Summary</h4>
+        </div>
+        <div class="card-body">
+            <table class="table">
+                <tr>
+                    <td>Subtotal:</td>
+                    <td class="text-end">${{ "%.2f"|format(subtotal) }}</td>
+                </tr>
+                <tr>
+                    <td>Delivery Fee:</td>
+                    <td class="text-end">${{ "%.2f"|format(delivery_fee) }}</td>
+                </tr>
+                <tr>
+                    <td>Packaging Charge:</td>
+                    <td class="text-end">${{ "%.2f"|format(packaging) }}</td>
+                </tr>
+                <tr>
+                    <td>Service Charge:</td>
+                    <td class="text-end">${{ "%.2f"|format(service) }}</td>
+                </tr>
+                <tr>
+                    <td>Tax ({{ tax_rate }}%):</td>
+                    <td class="text-end">${{ "%.2f"|format(tax) }}</td>
+                </tr>
+                <tr class="table-active">
+                    <th>Total:</th>
+                    <th class="text-end">${{ "%.2f"|format(grand_total) }}</th>
+                </tr>
+            </table>
+            
+            <div class="d-grid gap-2 mt-4">
+                <form method="POST" action="{{ url_for('confirm_order') }}">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        Confirm Order
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

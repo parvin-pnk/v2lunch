@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>வீட்டு Lunch - {% block title %}{% endblock %}</title>
+     <!-- Favicon links -->
+    <link rel="icon" href="{{ url_for('static', filename='images/favicon.ico') }}" type="image/x-icon">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.ico') }}" type="image/x-icon">
+    
+    <!-- For modern browsers -->
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='images/favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='images/favicon-16x16.png') }}">
+    
+    <!-- For Apple devices -->
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='images/apple-touch-icon.png') }}">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/cart.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+        <div class="container">
+            <a class="navbar-brand logo" href="{{ url_for('home') }}">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" 
+                     alt="V² Lunch Logo" 
+                     class="logo-image"
+                     height="50"> 
+                     <span class="logo-text">&nbsp;&nbsp;Lunch</span> <!-- Adjust height as needed -->
+            </a>
+            <a class="navbar-brand logo" href="{{ url_for('home') }}">
+                
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'home' %}active{% endif %}" href="{{ url_for('home') }}">Menu</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.path == url_for('my_orders') %}active{% endif %}" 
+                           href="{{ url_for('my_orders') }}">
+                           <i class="fas fa-history"></i> My Orders
+                        </a>
+                    </li>
+                    {% if 'current_order' in session %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'tracking' %}active{% endif %}" href="{{ url_for('tracking') }}">
+                            <i class="fas fa-truck"></i> Track Order
+                        </a>
+                    </li>
+                    {% endif %}
+                    {% if 'user_id' in session and session.is_admin %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('admin_dashboard') }}">
+                                <i class="fas fa-cog"></i> Admin Dashboard
+                            </a>
+                        </li>
+                    {% endif %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('contact') }}">Contact Us</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('about') }}">About Us</a>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center">
+                    {% if 'user_id' in session %}
+                        <a href="#" class="btn btn-warning position-relative me-3" data-bs-toggle="modal" data-bs-target="#cartModal">
+                            <i class="fas fa-shopping-cart"></i>
+                            {% if 'cart' in session and session.cart %}
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-dark">
+                                    {{ session.cart|length }}
+                                </span>
+                            {% endif %}
+                        </a>
+                        <div class="dropdown">
+                            <button class="btn btn-outline-dark dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown">
+                                <i class="fas fa-user-circle"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="#">My Account</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{{ url_for('logout') }}">Logout</a></li>
+                            </ul>
+                        </div>
+                    {% else %}
+                        <a href="{{ url_for('login') }}" class="btn btn-outline-dark me-2">
+                            <i class="fas fa-sign-in-alt"></i> Login
+                        </a>
+                        <a href="{{ url_for('register') }}" class="btn btn-warning">
+                            <i class="fas fa-user-plus"></i> Register
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+    {% for announcement in active_announcements %}
+<div class="announcement-card-container" id="announcement-{{ announcement._id }}">
+    <div class="card announcement-card border-{{ announcement.style }} shadow-sm">
+        <div class="card-body p-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <div class="announcement-icon bg-{{ announcement.style }} text-white">
+                        <i class="fas 
+                            {% if announcement.style == 'info' %}fa-info-circle
+                            {% elif announcement.style == 'success' %}fa-check-circle
+                            {% elif announcement.style == 'warning' %}fa-exclamation-triangle
+                            {% else %}fa-exclamation-circle{% endif %}"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h6 class="card-title mb-1 text-{{ announcement.style }}">{{ announcement.title }}</h6>
+                        <p class="card-text small mb-0">{{ announcement.message }}</p>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" 
+                        onclick="dismissAnnouncement('{{ announcement._id }}')"
+                        aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+
+    <div class="container my-4">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Cart Modal -->
+    <div class="modal fade" id="cartModal" tabindex="-1" aria-labelledby="cartModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="cartModalLabel">Your Cart</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    {% if 'cart' in session and session.cart %}
+                        <div class="cart-items">
+                            {% for item in session.cart %}
+                            <div class="card mb-3 cart-item" data-item-id="{{ item.id }}" data-item-type="{{ item.type }}">
+                                <div class="row g-0">
+                                    <div class="col-md-7">
+                                        <div class="card-body">
+                                            <h6 class="card-title">{{ item.name }}</h6>
+                                            <p class="card-text">
+                                                <small class="text-muted">
+                                                    ${{ "%.2f"|format(item.price) }} × {{ item.quantity }} = 
+                                                    ${{ "%.2f"|format(item.price * item.quantity) }}
+                                                </small>
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2 d-flex align-items-center justify-content-end">
+                                        <button class="btn btn-sm btn-outline-danger remove-from-cart" 
+                                                data-item-id="{{ item.id }}" 
+                                                data-item-type="{{ item.type }}">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class="cart-summary mt-3">
+                            <hr>
+                            <div class="d-flex justify-content-between">
+                                <h6>Subtotal:</h6>
+                                <h6>${{ "%.2f"|format(calculate_cart_total()) }}</h6>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">Your cart is empty</p>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Continue Shopping</button>
+                    {% if 'cart' in session and session.cart %}
+                        <a href="{{ url_for('summary') }}" class="btn btn-warning">Proceed to Checkout</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-white text-dark py-4 mt-5 border-top">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <h5 class="fw-bold">V² Lunch</h5>
+                    <p>Delicious homemade meals delivered to your doorstep</p>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <h5 class="fw-bold">Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="{{ url_for('home') }}" class="text-decoration-none text-dark">Menu</a></li>
+                        <li><a href="{{ url_for('about') }}" class="text-decoration-none text-dark">About Us</a></li>
+                        <li><a href="{{ url_for('contact') }}" class="text-decoration-none text-dark">Contact Us</a></li>
+                    </ul>
+                </div>
+            </div>
+            <hr>
+            <div class="text-center">
+                <p class="mb-0">&copy; 2026 PnK IT Services. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Notification Toast (only shown on home page) -->
+    {% if 'current_order' in session and request.endpoint == 'home' %}
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1100">
+        <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="false">
+            <div class="toast-header bg-warning text-dark">
+                <strong class="me-auto">Order Status</strong>
+                <small>{{ session.current_order.created_at|datetimeformat }}</small>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        {% if session.current_order.status == 'preparing' %}
+                        <i class="fas fa-utensils me-2"></i>Preparing your order
+                        {% elif session.current_order.status == 'cooking' %}
+                        <i class="fas fa-fire me-2"></i>Cooking in progress
+                        {% elif session.current_order.status == 'on_the_way' %}
+                        <i class="fas fa-motorcycle me-2"></i>On the way!
+                        {% elif session.current_order.status == 'delivered' %}
+                        <i class="fas fa-check-circle me-2"></i>Delivered!
+                        {% endif %}
+                    </div>
+                    <a href="{{ url_for('tracking') }}" class="btn btn-sm btn-outline-dark">View Details</a>
+                </div>
+                <div class="progress mt-2" style="height: 6px;">
+                    <div class="progress-bar bg-warning" role="progressbar" 
+                         style="width: {% if session.current_order.status == 'preparing' %}25%
+                                      {% elif session.current_order.status == 'cooking' %}50%
+                                      {% elif session.current_order.status == 'on_the_way' %}75%
+                                      {% else %}100%{% endif %}">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    <!-- Loading Overlay -->
+{% if 'admin' not in request.path and 'pdf-report' not in request.path %}
+<div id="loading-overlay" class="loading-overlay" style="display: none;">
+    <div class="loading-content text-center">
+        <img src="{{ url_for('static', filename='images/pnk-logo.gif') }}" 
+             alt="Loading..." 
+             class="loading-gif">
+        <p class="mt-3 text-muted">Please Wait Anbana People...</p>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const loadingOverlay = document.getElementById('loading-overlay');
+    if (!loadingOverlay) return;
+
+    // Show overlay immediately when page starts unloading
+    window.addEventListener('beforeunload', function() {
+        loadingOverlay.style.display = 'flex';
+    });
+
+    // Hide overlay when new page is loaded
+    window.addEventListener('load', function() {
+        loadingOverlay.style.display = 'none';
+    });
+
+    // Handle link clicks - show overlay before navigation
+    document.addEventListener('click', function(e) {
+        const target = e.target.closest('a');
+        if (!target) return;
+        
+        // Skip these cases
+        if (target.href.includes('/admin/') || 
+            target.href.includes('pdf-report') ||
+            target.target === '_blank' ||
+            target.hasAttribute('download') ||
+            target.href.startsWith('mailto:') ||
+            target.href.startsWith('tel:') ||
+            target.href.startsWith('javascript:')) {
+            return;
+        }
+        
+        // Only show for same-origin navigation to different pages
+        if (target.origin === window.location.origin && 
+            target.pathname !== window.location.pathname) {
+            loadingOverlay.style.display = 'flex';
+        }
+    });
+
+    // Handle form submissions
+    document.addEventListener('submit', function(e) {
+        if (!e.target.action.includes('/admin/')) {
+            loadingOverlay.style.display = 'flex';
+        }
+    });
+
+    // Safety fallback - hide after 8 seconds max
+    setTimeout(function() {
+        loadingOverlay.style.display = 'none';
+    }, 8000);
+});
+</script>
+
+<style>
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.9);
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.loading-content {
+    text-align: center;
+}
+.loading-gif {
+    width: 100px;
+    height: 100px;
+}
+</style>
+{% endif %}
+
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/cart.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block bg-dark sidebar collapse">
+            <div class="position-sticky pt-3">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link text-white {% if request.endpoint == 'admin_dashboard' %}active{% endif %}" 
+                           href="{{ url_for('admin_dashboard') }}">
+                            <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white {% if request.endpoint == 'admin_orders' %}active{% endif %}" 
+                           href="{{ url_for('admin_orders') }}">
+                            <i class="fas fa-clipboard-list me-2"></i>Orders
+                        </a>
+                    </li>
+                    <!-- Add Locations Tab Here -->
+                    <li class="nav-item">
+                        <a class="nav-link text-white {% if request.endpoint == 'admin_locations' %}active{% endif %}" 
+                           href="{{ url_for('admin_locations') }}">
+                            <i class="fas fa-map-marker-alt me-2"></i>Locations
+                        </a>
+                    </li>
+                    <!-- End of Locations Tab -->
+                    <li class="nav-item">
+                        <a class="nav-link text-white {% if request.endpoint == 'admin_food_items' %}active{% endif %}" 
+                           href="{{ url_for('admin_food_items') }}">
+                            <i class="fas fa-utensils me-2"></i>Food Items
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white {% if request.endpoint == 'admin_bill_settings' %}active{% endif %}" 
+                           href="{{ url_for('admin_bill_settings') }}">
+                            <i class="fas fa-receipt me-2"></i>Bill Settings
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white {% if request.endpoint == 'admin_announcements' %}active{% endif %}" 
+                           href="{{ url_for('admin_announcements') }}">
+                            <i class="fas fa-bullhorn me-2"></i>Announcements
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show mt-3">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            {% block admin_content %}{% endblock %}
+        </main>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,134 @@
+{% extends "admin/base.html" %}
+
+{% block admin_content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Bill Settings & Offers</h1>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>Pricing Settings</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="delivery_fee" class="form-label">Delivery Fee</label>
+                        <input type="number" step="0.01" class="form-control" id="delivery_fee" 
+                               name="delivery_fee" value="{{ settings.get('delivery_fee', 2.00) }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="tax_rate" class="form-label">Tax Rate (%)</label>
+                        <input type="number" step="0.01" class="form-control" id="tax_rate" 
+                               name="tax_rate" value="{{ settings.get('tax_rate', 5.0) }}" required>
+                    </div>
+                    
+                    <h6 class="mt-4">Special Charges</h6>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="packaging_charge" class="form-label">Packaging Charge</label>
+                            <input type="number" step="0.01" class="form-control" id="packaging_charge" 
+                                   name="packaging_charge" value="{{ settings.get('special_charges', {}).get('packaging', 0.50) }}">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="service_charge" class="form-label">Service Charge</label>
+                            <input type="number" step="0.01" class="form-control" id="service_charge" 
+                                   name="service_charge" value="{{ settings.get('special_charges', {}).get('service', 0.00) }}">
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">Update Settings</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Current Offers</h5>
+                <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#newOfferModal">
+                    <i class="fas fa-plus"></i> New Offer
+                </button>
+            </div>
+            <div class="card-body">
+                {% if offers %}
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Code</th>
+                                <th>Discount</th>
+                                <th>Valid Until</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for offer in offers %}
+                            <tr>
+                                <td>{{ offer.name }}</td>
+                                <td><code>{{ offer.code }}</code></td>
+                                <td>{{ offer.discount }}%</td>
+                                <td>{{ offer.valid_until|datetimeformat('%b %d, %Y') }}</td>
+                                <td>
+                                    <a href="{{ url_for('delete_offer', offer_id=offer._id) }}" 
+                                       class="btn btn-sm btn-danger">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p>No active offers</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- New Offer Modal -->
+<div class="modal fade" id="newOfferModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST">
+                <div class="modal-header">
+                    <h5 class="modal-title">Create New Offer</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="offer_name" class="form-label">Offer Name</label>
+                        <input type="text" class="form-control" id="offer_name" name="offer_name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="offer_code" class="form-label">Promo Code</label>
+                        <input type="text" class="form-control" id="offer_code" name="offer_code" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="discount" class="form-label">Discount (%)</label>
+                        <input type="number" class="form-control" id="discount" name="discount" min="1" max="100" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="valid_until" class="form-label">Valid Until</label>
+                        <input type="date" class="form-control" id="valid_until" name="valid_until" required>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="is_active" name="is_active" checked>
+                        <label class="form-check-label" for="is_active">Active</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create Offer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,183 @@
+{% extends "admin/base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h2 class="mb-0">Order #{{ order._id[:8] }}</h2>
+        <a href="{{ url_for('admin_orders') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Orders
+        </a>
+    </div>
+    
+    <div class="row">
+        <!-- Order Summary -->
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Order Summary</h5>
+                    <span class="badge bg-{% if order.status == 'delivered' %}success
+                                         {% elif order.status == 'cancelled' %}danger
+                                         {% elif order.status == 'on_the_way' %}info
+                                         {% else %}warning{% endif %}">
+                        {{ order.status|replace('_', ' ')|title }}
+                    </span>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th>Type</th>
+                                    <th>Price</th>
+                                    <th>Qty</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in order.order_items %}
+                                <tr>
+                                    <td>{{ item.name }}</td>
+                                    <td>{{ item.type|title }}</td>
+                                    <td>${{ "%.2f"|format(item.price) }}</td>
+                                    <td>{{ item.quantity }}</td>
+                                    <td>${{ "%.2f"|format(item.price * item.quantity) }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="4" class="text-end fw-bold">Subtotal:</td>
+                                    <td>${{ "%.2f"|format(order.subtotal) }}</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="4" class="text-end">Delivery Fee:</td>
+                                    <td>${{ "%.2f"|format(order.delivery_fee) }}</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="4" class="text-end">Packaging:</td>
+                                    <td>${{ "%.2f"|format(order.packaging) }}</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="4" class="text-end">Tax ({{ order.tax_rate }}%):</td>
+                                    <td>${{ "%.2f"|format(order.tax) }}</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="4" class="text-end fw-bold">Grand Total:</td>
+                                    <td>${{ "%.2f"|format(order.total) }}</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Status History -->
+            <div class="card mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Status History</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        {% for history in status_history %}
+                        <li class="list-group-item">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <strong>{{ history.status|replace('_', ' ')|title }}</strong>
+                                    <small class="text-muted ms-2">
+                                        {{ history.changed_at|datetimeformat('%d/%m/%Y %H:%M') }}
+                                    </small>
+                                </div>
+                                <div>
+                                    {% if history.notes %}
+                                    <button class="btn btn-sm btn-outline-secondary" 
+                                            data-bs-toggle="tooltip" 
+                                            title="{{ history.notes }}">
+                                        <i class="fas fa-info-circle"></i>
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </li>
+                        {% else %}
+                        <li class="list-group-item">No status history available</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Order Meta -->
+        <div class="col-lg-4">
+            <!-- Customer Info -->
+            <div class="card mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Customer Information</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">
+                            <strong>Name:</strong> {{ order.user.full_name }}
+                        </li>
+                        <li class="list-group-item">
+                            <strong>Email:</strong> {{ order.user.email }}
+                        </li>
+                        <li class="list-group-item">
+                            <strong>Phone:</strong> {{ order.user.phone }}
+                        </li>
+                        <li class="list-group-item">
+                            <strong>Address:</strong> {{ order.user.address }}
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Delivery Info -->
+            <div class="card mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Delivery Information</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">
+                            <strong>Date:</strong> {{ order.delivery_date }}
+                        </li>
+                        <li class="list-group-item">
+                            <strong>Time Slot:</strong> {{ order.time_slot }}
+                        </li>
+                        <li class="list-group-item">
+                            <strong>Location:</strong> {{ order.delivery_location }}
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Status Update -->
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Update Status</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{{ url_for('admin_update_order_status', order_id=order._id) }}">
+                        <div class="mb-3">
+                            <label for="status" class="form-label">New Status</label>
+                            <select class="form-select" id="status" name="status" required>
+                                <option value="confirmed" {% if order.status == 'confirmed' %}selected{% endif %}>Confirmed</option>
+                                <option value="preparing" {% if order.status == 'preparing' %}selected{% endif %}>Preparing</option>
+                                <option value="on_the_way" {% if order.status == 'on_the_way' %}selected{% endif %}>On the Way</option>
+                                <option value="delivered" {% if order.status == 'delivered' %}selected{% endif %}>Delivered</option>
+                                <option value="cancelled" {% if order.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="notes" class="form-label">Notes (Optional)</label>
+                            <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Update Status</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

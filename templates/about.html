@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="about-container">
+    <!-- Hero Section with White Background -->
+    <section class="about-hero">
+        <div class="hero-content">
+            <div class="logos-container">
+                <img src="{{ url_for('static', filename='images/pnk_logo.png') }}" alt="PnK Enterprise Logo" class="logo-img">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="V2Lunch Logo" class="logo-img">
+            </div>
+            <h4 class="tagline">PnK Enterprise Presents</h4>
+            <h1>V2 Lunch</h1>
+            <p class="tagline">Homemade Food to Your Workspace</p>
+        </div>
+    </section>
+
+    <!-- Name Explanation Section -->
+    <section class="name-section">
+        <div class="section-content">
+            <h2>The Meaning Behind V2Lunch</h2>
+            <div class="name-content">
+                <div class="tamil-box">
+                    <span class="tamil-word">வீட்டு</span>
+                    <span class="pronunciation">(Veedu)</span>
+                    <span class="meaning">= Home in Tamil</span>
+                </div>
+                <p>We combine "Veedu" (home) with "Lunch" to deliver authentic homemade food to your workplace. Every meal carries the care and quality of வீட்டு உணவு (home cooking).</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Our Story Section -->
+    <section class="story-section">
+        <div class="section-content">
+            <h2>Our Story</h2>
+            <div class="story-content">
+                <p>V2Lunch was founded by engineering students who grew tired of unhealthy office meals. We created a solution that brings real homemade food to busy professionals.</p>
+                <p>Our kitchen partners are carefully selected home chefs who cook with the same love and attention as they would for their own families.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- PnK Enterprise Section -->
+    <section class="pnk-section">
+        <div class="section-content">
+            <h2>About PnK Enterprise</h2>
+            <div class="pnk-logo-container">
+                <img src="{{ url_for('static', filename='images/pnk-logo.gif') }}" alt="PnK Enterprise Logo" class="pnk-logo">
+            
+            </div>
+            <div class="pnk-content">
+                <p>PnK Enterprise is a student-led startup founded during engineering studies, driven by a passion for innovation and problem-solving.</p>
+                <div class="projects-grid">
+                    <div class="project-card">
+                        <div class="project-icon">🏠</div>
+                        <h3>V2Lunch</h3>
+                        <p>Office food delivery service</p>
+                    </div>
+                    <div class="project-card">
+                        <div class="project-icon">💻</div>
+                        <h3>PnK IT Services</h3>
+                        <p>Simplifying Tech for Smarter Business.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Mission Section -->
+    <section class="mission-section">
+        <div class="section-content">
+            <h2>Our Promise</h2>
+            <div class="mission-grid">
+                <div class="mission-card">
+                    <div class="mission-icon">👩‍🍳</div>
+                    <h3>Home Chefs</h3>
+                    <p>Verified home cooks with authentic recipes</p>
+                </div>
+                <div class="mission-card">
+                    <div class="mission-icon">🚚</div>
+                    <h3>Fast Delivery</h3>
+                    <p>meals at your desk by lunchtime</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <h2>Ready to experience real homemade food at work?</h2>
+        <a href="{{ url_for('home') }}" class="cta-button">Order Your Lunch Now</a>
+    </section>
+</div>
+{% endblock %}

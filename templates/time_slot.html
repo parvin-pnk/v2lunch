@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-white">
+            <h4 class="mb-0">Select Time Slot</h4>
+        </div>
+        <div class="card-body">
+            {% if formatted_date %}
+            <p class="text-muted mb-4">Delivery date: {{ formatted_date }}</p>
+            {% endif %}
+            
+            <form method="POST">
+                <div class="list-group">
+                    {% for slot in time_slots %}
+                    <label class="list-group-item list-group-item-action">
+                        <div class="d-flex align-items-center">
+                            <input type="radio" name="time_slot" value="{{ slot }}" 
+                                   class="form-check-input me-3" required>
+                            <div>
+                                <h6 class="mb-1">{{ slot }}</h6>
+                                <small class="text-muted">Estimated delivery window</small>
+                            </div>
+                        </div>
+                    </label>
+                    {% endfor %}
+                </div>
+                
+                <div class="d-grid gap-2 mt-4">
+                    <button type="submit" class="btn btn-warning">
+                        Continue to Order Summary
+                    </button>
+                    <a href="{{ url_for('location') }}" class="btn btn-outline-secondary">
+                        Back to Location
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

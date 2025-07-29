@@ -1,0 +1,194 @@
+{% extends "admin/base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <h2 class="mb-4">Order Management</h2>
+    
+    <!-- Filter and Export Section -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-8">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-4">
+                            <label for="date" class="form-label">Filter by Date</label>
+                            <input type="date" class="form-control" id="date" name="date" 
+                                   value="{{ date_filter if date_filter else '' }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="status" class="form-label">Filter by Status</label>
+                            <select class="form-select" id="status" name="status">
+                                <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All Statuses</option>
+                                <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+                                <option value="confirmed" {% if status_filter == 'confirmed' %}selected{% endif %}>Confirmed</option>
+                                <option value="preparing" {% if status_filter == 'preparing' %}selected{% endif %}>Preparing</option>
+                                <option value="on_the_way" {% if status_filter == 'on_the_way' %}selected{% endif %}>On the Way</option>
+                                <option value="delivered" {% if status_filter == 'delivered' %}selected{% endif %}>Delivered</option>
+                                <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="location" class="form-label">Filter by Location</label>
+                            <select class="form-select" id="location" name="location">
+                                <option value="all" {% if location_filter == 'all' %}selected{% endif %}>All Locations</option>
+                                {% for location in locations %}
+                                <option value="{{ location.name }}" {% if location_filter == location.name %}selected{% endif %}>
+                                    {{ location.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-12 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary me-2">Filter</button>
+                            <a href="{{ url_for('admin_orders') }}" class="btn btn-outline-secondary">Reset</a>
+                        </div>
+                    </form>
+                </div>
+                <div class="col-md-4 d-flex align-items-end justify-content-end">
+                    <div class="btn-group" role="group">
+                        <a href="{{ url_for('admin_order_pdf_report', date=date_filter, status=status_filter, location=location_filter) }}" 
+                           class="btn btn-danger" target="_blank">
+                            <i class="fas fa-file-pdf me-2"></i>Export PDF
+                        </a>
+                        <button type="button" class="btn btn-warning dropdown-toggle dropdown-toggle-split" 
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                            <span class="visually-hidden">Toggle Dropdown</span>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a class="dropdown-item" 
+                                   href="{{ url_for('admin_order_pdf_report', date=date_filter, status=status_filter, location=location_filter, detailed=True) }}" 
+                                   target="_blank">
+                                    <i class="fas fa-file-alt me-2"></i>Detailed Report
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" 
+                                   href="{{ url_for('admin_order_pdf_report', date=date_filter, status=status_filter, location=location_filter) }}" 
+                                   target="_blank">
+                                    <i class="fas fa-file-invoice me-2"></i>Summary Report
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Orders Table -->
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover table-striped">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Customer</th>
+                            <th>Order Date</th>
+                            <th>Delivery Date</th>
+                            <th>Location</th>
+                            <th>Time Slot</th>
+                            <th>Items</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in orders %}
+                        <tr>
+                            <td>#{{ order._id[:6]|upper }}</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-sm me-2">
+                                        <span class="avatar-title bg-light text-dark rounded">
+                                            {{ order.user.full_name|first|upper }}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">{{ order.user.full_name }}</h6>
+                                        <small class="text-muted">{{ order.user.phone }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ order.created_at|datetimeformat('%d/%m/%Y') }}</td>
+                            <td>{{ order.delivery_date }}</td>
+                            <td>{{ order.delivery_location }}</td>
+                            <td>{{ order.time_slot }}</td>
+                            <td>
+                                <span class="badge bg-primary rounded-pill">
+                                    {{ order.item_count }}
+                                </span>
+                            </td>
+                            <td>${{ "%.2f"|format(order.total) }}</td>
+                            <td>
+                                <span class="badge bg-{% if order.status == 'delivered' %}success
+                                                     {% elif order.status == 'cancelled' %}danger
+                                                     {% elif order.status == 'on_the_way' %}info
+                                                     {% else %}warning{% endif %} rounded-pill">
+                                    {{ order.status|replace('_', ' ')|title }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="{{ url_for('admin_order_details', order_id=order._id) }}" 
+                                       class="btn btn-sm btn-outline-primary" title="View Details">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="10" class="text-center py-4">
+                                <i class="fas fa-box-open fa-2x text-muted mb-3"></i>
+                                <h5 class="text-muted">No orders found</h5>
+                                {% if date_filter or status_filter != 'all' or location_filter != 'all' %}
+                                <p class="text-muted">Try adjusting your filters</p>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination -->
+            {% if pagination.pages > 1 %}
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if pagination.page > 1 %}
+                    <li class="page-item">
+                        <a class="page-link" 
+                           href="{{ url_for('admin_orders', page=pagination.page-1, date=date_filter, status=status_filter, location=location_filter) }}">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for p in range(1, pagination.pages + 1) %}
+                    <li class="page-item {% if p == pagination.page %}active{% endif %}">
+                        <a class="page-link" 
+                           href="{{ url_for('admin_orders', page=p, date=date_filter, status=status_filter, location=location_filter) }}">
+                            {{ p }}
+                        </a>
+                    </li>
+                    {% endfor %}
+                    
+                    {% if pagination.page < pagination.pages %}
+                    <li class="page-item">
+                        <a class="page-link" 
+                           href="{{ url_for('admin_orders', page=pagination.page+1, date=date_filter, status=status_filter, location=location_filter) }}">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}

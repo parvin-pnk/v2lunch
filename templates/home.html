@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container">
+    <h2 class="my-4">Select Main Dishes</h2>
+    <form method="POST">
+        <div class="row">
+            {% for dish in dishes %}
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="form-check mb-2">
+                            <input class="form-check-input item-checkbox" type="checkbox" 
+                                   name="main_dishes" value="{{ dish._id }}" 
+                                   id="main-{{ dish._id }}">
+                            <label class="form-check-label" for="main-{{ dish._id }}">
+                                <h5 class="card-title">{{ dish.name }}</h5>
+                            </label>
+                        </div>
+                        <p class="card-text">{{ dish.description }}</p>
+                        <p class="text-muted">${{ "%.2f"|format(dish.price) }}</p>
+                        
+                        <!-- Quantity Selector -->
+                        <div class="quantity-selector mt-2" style="display: none;">
+                            <div class="input-group input-group-sm" style="width: 120px;">
+                                <button type="button" class="btn btn-outline-secondary quantity-decrement">-</button>
+                                <input type="number" name="main_quantity_{{ dish._id }}" 
+                                       class="form-control text-center quantity-input" 
+                                       value="1" min="1" max="10">
+                                <button type="button" class="btn btn-outline-secondary quantity-increment">+</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="text-end mt-3">
+            <button type="submit" class="btn btn-primary">Next: Select Side Dishes</button>
+        </div>
+    </form>
+    
+</div>
+
+<script>
+// Show quantity selector when item is checked
+document.querySelectorAll('.item-checkbox').forEach(checkbox => {
+    checkbox.addEventListener('change', function() {
+        const quantitySelector = this.closest('.card-body').querySelector('.quantity-selector');
+        quantitySelector.style.display = this.checked ? 'block' : 'none';
+    });
+});
+
+// Quantity increment/decrement buttons
+document.querySelectorAll('.quantity-increment').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const input = this.previousElementSibling;
+        input.value = parseInt(input.value) + 1;
+    });
+});
+
+document.querySelectorAll('.quantity-decrement').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const input = this.nextElementSibling;
+        if (parseInt(input.value) > 1) {
+            input.value = parseInt(input.value) - 1;
+        }
+    });
+});
+</script>
+    <!-- Order Status Toast -->
+{% if 'current_order' in session %}
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1100">
+    <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="false">
+        <div class="toast-header bg-warning text-dark">
+            <strong class="me-auto">Order Status</strong>
+            <small>{{ session.current_order.created_at }}</small>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    {% if session.current_order.status == 'preparing' %}
+                    <i class="fas fa-utensils me-2"></i>Preparing your order
+                    {% elif session.current_order.status == 'cooking' %}
+                    <i class="fas fa-fire me-2"></i>Cooking in progress
+                    {% elif session.current_order.status == 'on_the_way' %}
+                    <i class="fas fa-motorcycle me-2"></i>On the way!
+                    {% elif session.current_order.status == 'delivered' %}
+                    <i class="fas fa-check-circle me-2"></i>Delivered!
+                    {% endif %}
+                </div>
+                <a href="{{ url_for('tracking') }}" class="btn btn-sm btn-outline-dark">View</a>
+            </div>
+            <div class="progress mt-2" style="height: 6px;">
+                <div class="progress-bar bg-warning" role="progressbar" 
+                     style="width: {% if session.current_order.status == 'preparing' %}25%
+                                  {% elif session.current_order.status == 'cooking' %}50%
+                                  {% elif session.current_order.status == 'on_the_way' %}75%
+                                  {% else %}100%{% endif %}">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

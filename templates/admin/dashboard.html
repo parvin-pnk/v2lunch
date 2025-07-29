@@ -1,0 +1,100 @@
+{% extends "admin/base.html" %}
+
+{% block admin_content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Admin Dashboard</h1>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <a href="{{ url_for('admin_orders') }}" class="text-decoration-none">
+            <div class="card text-white bg-primary mb-3 hover-shadow">
+                <div class="card-body">
+                    <h5 class="card-title">Total Orders</h5>
+                    <p class="card-text display-4">{{ orders_count }}</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>View All</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-4">
+        <a href="{{ url_for('admin_orders', date=today_date) }}" class="text-decoration-none">
+            <div class="card text-white bg-success mb-3 hover-shadow">
+                <div class="card-body">
+                    <h5 class="card-title">Today's Orders</h5>
+                    <p class="card-text display-4">{{ today_orders }}</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>View Today</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white bg-info mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Registered Users</h5>
+                <p class="card-text display-4">{{ users_count }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Orders Section -->
+<div class="card mt-4">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Recent Orders</h5>
+        <a href="{{ url_for('admin_orders') }}" class="btn btn-sm btn-outline-primary">
+            View All <i class="fas fa-arrow-right ms-1"></i>
+        </a>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Customer</th>
+                        <th>Date</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in recent_orders %}
+                    <tr>
+                        <td>{{ order._id[:8] }}</td>
+                        <td>{{ order.user.full_name }}</td>
+                        <td>{{ order.created_at|datetimeformat('%d/%m/%Y') }}</td>
+                        <td>${{ "%.2f"|format(order.total) }}</td>
+                        <td>
+                            <span class="badge bg-{% if order.status == 'delivered' %}success
+                                                 {% elif order.status == 'cancelled' %}danger
+                                                 {% elif order.status == 'on_the_way' %}info
+                                                 {% else %}warning{% endif %}">
+                                {{ order.status|replace('_', ' ')|title }}
+                            </span>
+                        </td>
+                        <td>
+                            <a href="{{ url_for('admin_order_details', order_id=order._id) }}" 
+                               class="btn btn-sm btn-outline-primary">
+                                View
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center">No recent orders</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

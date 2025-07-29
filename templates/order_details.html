@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Order Details</h2>
+        <a href="{{ url_for('my_orders') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Back to Orders
+        </a>
+    </div>
+    
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white">
+            <div class="row">
+                <div class="col-md-6">
+                    <strong>Order #:</strong> {{ order._id|truncate(10, True, '') }}
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <strong>Date:</strong> {{ order.created_at|datetimeformat }}
+                </div>
+            </div>
+        </div>
+        
+        <div class="card-body">
+            <!-- Status Alert -->
+            <div class="alert alert-{% if order.status == 'delivered' %}success
+                {% elif order.status == 'cancelled' %}danger
+                {% else %}info{% endif %}">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>Status:</strong> 
+                        <span class="text-capitalize">{{ order.status }}</span>
+                        {% if order.status == 'preparing' %}
+                            <i class="fas fa-utensils ms-2"></i>
+                        {% elif order.status == 'on_the_way' %}
+                            <i class="fas fa-truck ms-2"></i>
+                        {% elif order.status == 'delivered' %}
+                            <i class="fas fa-check-circle ms-2"></i>
+                        {% endif %}
+                    </div>
+                    {% if order.status == 'preparing' %}
+                    <form method="POST" action="{{ url_for('cancel_order', order_id=order._id) }}">
+                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                            Cancel Order
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Order Items Section -->
+            <h5 class="mt-4 mb-3">Order Summary</h5>
+            
+            {% if order.order_items %}
+            <div class="table-responsive">
+                <table class="table">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Item</th>
+                            <th>Type</th>
+                            <th class="text-end">Price</th>
+                            <th class="text-end">Qty</th>
+                            <th class="text-end">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in order.order_items %}
+                        <tr>
+                            <td>
+                                {{ item.name }}
+                                {% if item.get('description') %}
+                                <br><small class="text-muted">{{ item.description }}</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge 
+                                    {% if item.type == 'main' %}bg-primary
+                                    {% elif item.type == 'side' %}bg-secondary
+                                    {% else %}bg-info{% endif %}">
+                                    {{ item.type|title }}
+                                </span>
+                            </td>
+                            <td class="text-end">${{ "%.2f"|format(item.price) }}</td>
+                            <td class="text-end">{{ item.quantity }}</td>
+                            <td class="text-end">${{ "%.2f"|format(item.price * item.quantity) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot class="table-light">
+                        <tr>
+                            <td colspan="4" class="text-end"><strong>Subtotal:</strong></td>
+                            <td class="text-end">${{ "%.2f"|format(order.subtotal) }}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="4" class="text-end"><small>Delivery Fee:</small></td>
+                            <td class="text-end"><small>${{ "%.2f"|format(order.delivery_fee) }}</small></td>
+                        </tr>
+                        <tr>
+                            <td colspan="4" class="text-end"><small>Packaging:</small></td>
+                            <td class="text-end"><small>${{ "%.2f"|format(order.packaging) }}</small></td>
+                        </tr>
+                        <tr>
+                            <td colspan="4" class="text-end"><small>Tax ({{ order.tax_rate }}%):</small></td>
+                            <td class="text-end"><small>${{ "%.2f"|format(order.tax) }}</small></td>
+                        </tr>
+                        <tr>
+                            <td colspan="4" class="text-end"><strong>Total:</strong></td>
+                            <td class="text-end"><strong>${{ "%.2f"|format(order.total) }}</strong></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                No items found in this order
+            </div>
+            {% endif %}
+            
+            <!-- Delivery Information -->
+            <div class="mt-4">
+                <h5 class="mb-3">Delivery Information</h5>
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p class="mb-2">
+                                    <i class="fas fa-map-marker-alt me-2"></i>
+                                    <strong>Location:</strong> {{ order.delivery_location }}
+                                </p>
+                                <p class="mb-0">
+                                    <i class="fas fa-calendar-day me-2"></i>
+                                    <strong>Date:</strong> {{ order.delivery_date|datetimeformat('%A, %B %d, %Y') }}
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <p class="mb-2">
+                                    <i class="fas fa-clock me-2"></i>
+                                    <strong>Time Slot:</strong> {{ order.time_slot }}
+                                </p>
+                                {% if order.status == 'delivered' %}
+                                <p class="mb-0">
+                                    <i class="fas fa-check-circle me-2"></i>
+                                    <strong>Delivered At:</strong> 
+                                    {{ order.delivered_at|datetimeformat if order.delivered_at else 'N/A' }}
+                                </p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
