@@ -32,9 +32,9 @@
                                     {{ item.type|title }}
                                 </span>
                             </td>
-                            <td class="text-end">${{ "%.2f"|format(item.price) }}</td>
+                            <td class="text-end">ரூ{{ "%.2f"|format(item.price) }}</td>
                             <td class="text-end">{{ item.quantity }}</td>
-                            <td class="text-end">${{ "%.2f"|format(item.price * item.quantity) }}</td>
+                            <td class="text-end">ரூ{{ "%.2f"|format(item.price * item.quantity) }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -63,27 +63,27 @@
             <table class="table">
                 <tr>
                     <td>Subtotal:</td>
-                    <td class="text-end">${{ "%.2f"|format(subtotal) }}</td>
+                    <td class="text-end">ரூ{{ "%.2f"|format(subtotal) }}</td>
                 </tr>
                 <tr>
                     <td>Delivery Fee:</td>
-                    <td class="text-end">${{ "%.2f"|format(delivery_fee) }}</td>
+                    <td class="text-end">ரூ{{ "%.2f"|format(delivery_fee) }}</td>
                 </tr>
                 <tr>
                     <td>Packaging Charge:</td>
-                    <td class="text-end">${{ "%.2f"|format(packaging) }}</td>
+                    <td class="text-end">ரூ{{ "%.2f"|format(packaging) }}</td>
                 </tr>
                 <tr>
                     <td>Service Charge:</td>
-                    <td class="text-end">${{ "%.2f"|format(service) }}</td>
+                    <td class="text-end">ரூ{{ "%.2f"|format(service) }}</td>
                 </tr>
                 <tr>
                     <td>Tax ({{ tax_rate }}%):</td>
-                    <td class="text-end">${{ "%.2f"|format(tax) }}</td>
+                    <td class="text-end">ரூ{{ "%.2f"|format(tax) }}</td>
                 </tr>
                 <tr class="table-active">
                     <th>Total:</th>
-                    <th class="text-end">${{ "%.2f"|format(grand_total) }}</th>
+                    <th class="text-end">ரூ{{ "%.2f"|format(grand_total) }}</th>
                 </tr>
             </table>
             

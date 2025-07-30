@@ -39,32 +39,32 @@
                                 <tr>
                                     <td>{{ item.name }}</td>
                                     <td>{{ item.type|title }}</td>
-                                    <td>${{ "%.2f"|format(item.price) }}</td>
+                                    <td>ரூ{{ "%.2f"|format(item.price) }}</td>
                                     <td>{{ item.quantity }}</td>
-                                    <td>${{ "%.2f"|format(item.price * item.quantity) }}</td>
+                                    <td>ரூ{{ "%.2f"|format(item.price * item.quantity) }}</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
                             <tfoot>
                                 <tr>
                                     <td colspan="4" class="text-end fw-bold">Subtotal:</td>
-                                    <td>${{ "%.2f"|format(order.subtotal) }}</td>
+                                    <td>ரூ{{ "%.2f"|format(order.subtotal) }}</td>
                                 </tr>
                                 <tr>
                                     <td colspan="4" class="text-end">Delivery Fee:</td>
-                                    <td>${{ "%.2f"|format(order.delivery_fee) }}</td>
+                                    <td>ரூ{{ "%.2f"|format(order.delivery_fee) }}</td>
                                 </tr>
                                 <tr>
                                     <td colspan="4" class="text-end">Packaging:</td>
-                                    <td>${{ "%.2f"|format(order.packaging) }}</td>
+                                    <td>ரூ{{ "%.2f"|format(order.packaging) }}</td>
                                 </tr>
                                 <tr>
                                     <td colspan="4" class="text-end">Tax ({{ order.tax_rate }}%):</td>
-                                    <td>${{ "%.2f"|format(order.tax) }}</td>
+                                    <td>ரூ{{ "%.2f"|format(order.tax) }}</td>
                                 </tr>
                                 <tr>
                                     <td colspan="4" class="text-end fw-bold">Grand Total:</td>
-                                    <td>${{ "%.2f"|format(order.total) }}</td>
+                                    <td>ரூ{{ "%.2f"|format(order.total) }}</td>
                                 </tr>
                             </tfoot>
                         </table>

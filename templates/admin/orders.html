@@ -121,7 +121,7 @@
                                     {{ order.item_count }}
                                 </span>
                             </td>
-                            <td>${{ "%.2f"|format(order.total) }}</td>
+                            <td>ரூ{{ "%.2f"|format(order.total) }}</td>
                             <td>
                                 <span class="badge bg-{% if order.status == 'delivered' %}success
                                                      {% elif order.status == 'cancelled' %}danger

@@ -53,7 +53,7 @@
                     {% for item in main_dishes %}
                     <tr>
                         <td>{{ item.name }}</td>
-                        <td>${{ "%.2f"|format(item.price) }}</td>
+                        <td>ரூ{{ "%.2f"|format(item.price) }}</td>
                         <td>
                             <span class="badge bg-{% if item.is_available %}success{% else %}danger{% endif %}">
                                 {% if item.is_available %}Available{% else %}Unavailable{% endif %}
@@ -112,7 +112,7 @@
                     {% for item in side_dishes %}
                     <tr>
                         <td>{{ item.name }}</td>
-                        <td>${{ "%.2f"|format(item.price) }}</td>
+                        <td>ரூ{{ "%.2f"|format(item.price) }}</td>
                         <td>
                             <span class="badge bg-{% if item.is_available %}success{% else %}danger{% endif %}">
                                 {% if item.is_available %}Available{% else %}Unavailable{% endif %}

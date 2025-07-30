@@ -80,32 +80,32 @@
                                     {{ item.type|title }}
                                 </span>
                             </td>
-                            <td class="text-end">${{ "%.2f"|format(item.price) }}</td>
+                            <td class="text-end">ரூ{{ "%.2f"|format(item.price) }}</td>
                             <td class="text-end">{{ item.quantity }}</td>
-                            <td class="text-end">${{ "%.2f"|format(item.price * item.quantity) }}</td>
+                            <td class="text-end">ரூ{{ "%.2f"|format(item.price * item.quantity) }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
                     <tfoot class="table-light">
                         <tr>
                             <td colspan="4" class="text-end"><strong>Subtotal:</strong></td>
-                            <td class="text-end">${{ "%.2f"|format(order.subtotal) }}</td>
+                            <td class="text-end">ரூ{{ "%.2f"|format(order.subtotal) }}</td>
                         </tr>
                         <tr>
                             <td colspan="4" class="text-end"><small>Delivery Fee:</small></td>
-                            <td class="text-end"><small>${{ "%.2f"|format(order.delivery_fee) }}</small></td>
+                            <td class="text-end"><small>ரூ{{ "%.2f"|format(order.delivery_fee) }}</small></td>
                         </tr>
                         <tr>
                             <td colspan="4" class="text-end"><small>Packaging:</small></td>
-                            <td class="text-end"><small>${{ "%.2f"|format(order.packaging) }}</small></td>
+                            <td class="text-end"><small>ரூ{{ "%.2f"|format(order.packaging) }}</small></td>
                         </tr>
                         <tr>
                             <td colspan="4" class="text-end"><small>Tax ({{ order.tax_rate }}%):</small></td>
-                            <td class="text-end"><small>${{ "%.2f"|format(order.tax) }}</small></td>
+                            <td class="text-end"><small>ரூ{{ "%.2f"|format(order.tax) }}</small></td>
                         </tr>
                         <tr>
                             <td colspan="4" class="text-end"><strong>Total:</strong></td>
-                            <td class="text-end"><strong>${{ "%.2f"|format(order.total) }}</strong></td>
+                            <td class="text-end"><strong>ரூ{{ "%.2f"|format(order.total) }}</strong></td>
                         </tr>
                     </tfoot>
                 </table>

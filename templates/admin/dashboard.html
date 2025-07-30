@@ -71,7 +71,7 @@
                         <td>{{ order._id[:8] }}</td>
                         <td>{{ order.user.full_name }}</td>
                         <td>{{ order.created_at|datetimeformat('%d/%m/%Y') }}</td>
-                        <td>${{ "%.2f"|format(order.total) }}</td>
+                        <td>ரூ{{ "%.2f"|format(order.total) }}</td>
                         <td>
                             <span class="badge bg-{% if order.status == 'delivered' %}success
                                                  {% elif order.status == 'cancelled' %}danger
