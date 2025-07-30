@@ -24,6 +24,7 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
         <div class="container">
+            <!-- Logo/Brand -->
             <a class="navbar-brand logo" href="{{ url_for('home') }}">
                 <img src="{{ url_for('static', filename='images/logo.png') }}" 
                      alt="V² Lunch Logo" 
@@ -31,9 +32,18 @@
                      height="50"> 
                      <span class="logo-text">&nbsp;&nbsp;Lunch</span> <!-- Adjust height as needed -->
             </a>
-            <a class="navbar-brand logo" href="{{ url_for('home') }}">
-                
-            </a>
+            <!-- Mobile Cart Icon (always visible) -->
+             <div class="d-lg-none ms-auto me-3">
+                <a href="#" class="btn btn-warning position-relative" data-bs-toggle="modal" data-bs-target="#cartModal">
+                    <i class="fas fa-shopping-cart"></i>
+                    {% if 'cart' in session and session.cart %}
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-dark">
+                        {{ session.cart|length }}
+                        </span>
+                    {% endif %}
+                </a>
+            </div>
+             <!-- Hamburger Menu Toggle -->
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -69,7 +79,7 @@
                         <a class="nav-link" href="{{ url_for('about') }}">About Us</a>
                     </li>
                 </ul>
-                <div class="d-flex align-items-center">
+                <div class="d-none d-lg-flex align-items-center">
                     {% if 'user_id' in session %}
                         <a href="#" class="btn btn-warning position-relative me-3" data-bs-toggle="modal" data-bs-target="#cartModal">
                             <i class="fas fa-shopping-cart"></i>

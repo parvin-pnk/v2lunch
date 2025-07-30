@@ -818,3 +818,27 @@ footer {
         margin: 0 auto;
     }
 }
+/* Ensure cart icon stays visible on mobile */
+@media (max-width: 991.98px) {
+    .navbar-collapse {
+        margin-top: 10px;
+    }
+    
+    /* Hide desktop cart on mobile */
+    .d-lg-flex .btn-warning {
+        display: none !important;
+    }
+    
+    /* Style mobile cart icon */
+    .d-lg-none .btn-warning {
+        padding: 0.35rem 0.65rem;
+        font-size: 1rem;
+    }
+    
+    /* Adjust badge position for mobile */
+    .d-lg-none .badge {
+        font-size: 0.6rem;
+        padding: 0.25em 0.4em;
+        transform: translate(50%, -50%);
+    }
+}
