@@ -7,13 +7,16 @@ from bson.objectid import ObjectId
 from dotenv import load_dotenv
 from math import ceil
 
+import secrets
+import string
+
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 from reportlab.lib.styles import getSampleStyleSheet,ParagraphStyle
 from reportlab.lib import colors
 import io
 
-from flask_mail import Mail
+from flask_mail import Mail,Message
 # Load environment variables
 load_dotenv()
 
@@ -21,9 +24,9 @@ app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY', os.urandom(24))
 
 # Add to your configuration section
-app.config['MAIL_SERVER'] = 'smtp.gmail.com'  # e.g., smtp.gmail.com
-app.config['MAIL_PORT'] = 587
-app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER') # e.g., smtp.gmail.com
+app.config['MAIL_PORT'] = os.getenv('MAIL_PORT')
+app.config['MAIL_USE_TLS'] = os.getenv('MAIL_USE_TLS')
 app.config['MAIL_USERNAME'] = os.getenv('EMAIL_USER')
 app.config['MAIL_PASSWORD'] = os.getenv('EMAIL_PASSWORD')
 app.config['MAIL_DEFAULT_SENDER'] = os.getenv('EMAIL_USER')
@@ -291,6 +294,79 @@ def contact():
             flash('Error submitting your message. Please try again.', 'danger')
     
     return render_template('contact.html')
+
+
+
+# My Account Page
+@app.route('/my-account', methods=['GET', 'POST'])
+def my_account():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    user = db.users.find_one({'_id': ObjectId(session['user_id'])})
+    
+    if request.method == 'POST':
+        # Handle profile updates
+        if 'update_profile' in request.form:
+            db.users.update_one(
+                {'_id': ObjectId(session['user_id'])},
+                {'$set': {
+                    'full_name': request.form.get('full_name'),
+                    'phone': request.form.get('phone'),
+                    'address': request.form.get('address')
+                }}
+            )
+            flash('Profile updated successfully!', 'success')
+        
+        # Handle password change
+        elif 'change_password' in request.form:
+            current_password = request.form.get('current_password')
+            new_password = request.form.get('new_password')
+            
+            if check_password_hash(user['password'], current_password):
+                db.users.update_one(
+                    {'_id': ObjectId(session['user_id'])},
+                    {'$set': {'password': generate_password_hash(new_password)}}
+                )
+                flash('Password changed successfully!', 'success')
+            else:
+                flash('Current password is incorrect', 'danger')
+        
+        return redirect(url_for('my_account'))
+    
+    return render_template('my_account.html', user=user)
+
+# Add these routes after your login route
+@app.route('/forgot-password', methods=['GET', 'POST'])
+def forgot_password():
+    if request.method == 'POST':
+        email = request.form.get('email')
+        user = db.users.find_one({"email": email})
+        
+        if user:
+            # Generate temporary password
+            temp_password = ''.join(secrets.choice(string.ascii_letters + string.digits) for i in range(8))
+            
+            # Update user's password in DB
+            db.users.update_one(
+                {"_id": user['_id']},
+                {"$set": {"password": generate_password_hash(temp_password)}}
+            )
+            
+            # Send email
+            msg = Message(
+                "Your Password Reset",
+                sender=app.config['MAIL_DEFAULT_SENDER'],
+                recipients=[email]
+            )
+            msg.body = f"Your temporary password is: {temp_password}\n\nPlease change it after logging in."
+            mail.send(msg)
+            
+            flash('A temporary password has been sent to your email', 'success')
+            return redirect(url_for('login'))
+        
+        flash('Email not found', 'danger')
+    return render_template('forgot_password.html')
 
 @app.route('/add-to-cart', methods=['POST'])
 def add_to_cart():
@@ -954,6 +1030,46 @@ def login():
     
     return render_template('login.html')
 
+import random
+import string
+from datetime import datetime, timedelta
+
+# Add these new routes
+@app.route('/verify-email', methods=['GET', 'POST'])
+def verify_email():
+    if request.method == 'POST':
+        user_otp = request.form.get('otp')
+        session_email = session.get('pending_email')
+        
+        if not session_email:
+            flash('Session expired. Please register again.', 'danger')
+            return redirect(url_for('register'))
+        
+        stored_otp = db.otp_tokens.find_one({
+            'email': session_email,
+            'used': False
+        })
+        
+        if stored_otp and stored_otp['otp'] == user_otp and stored_otp['expires_at'] > datetime.now():
+            # Mark OTP as used
+            db.otp_tokens.update_one(
+                {'_id': stored_otp['_id']},
+                {'$set': {'used': True}}
+            )
+            
+            # Create the user account
+            db.users.insert_one(session['pending_user_data'])
+            del session['pending_email']
+            del session['pending_user_data']
+            
+            flash('Email verified! Registration complete. Please login.', 'success')
+            return redirect(url_for('login'))
+        else:
+            flash('Invalid or expired OTP', 'danger')
+    
+    return render_template('verify_email.html')
+
+# Modified register route
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -984,8 +1100,11 @@ def register():
             return redirect(url_for('register'))
 
         try:
-            # Create new user
-            new_user = {
+            # Generate OTP (6-digit code)
+            otp = ''.join(random.choices(string.digits, k=6))
+            
+            # Store user data temporarily in session
+            session['pending_user_data'] = {
                 'full_name': full_name,
                 'email': email,
                 'phone': phone,
@@ -996,19 +1115,72 @@ def register():
                 'created_at': datetime.now(),
                 'updated_at': datetime.now()
             }
-
-            # Insert into database
-            db.users.insert_one(new_user)
+            session['pending_email'] = email
             
-            flash('Registration successful! Please login', 'success')
-            return redirect(url_for('login'))
-
+            # Store OTP in database (expires in 15 minutes)
+            db.otp_tokens.insert_one({
+                'email': email,
+                'otp': otp,
+                'created_at': datetime.now(),
+                'expires_at': datetime.now() + timedelta(minutes=15),
+                'used': False
+            })
+            
+            # Send OTP via email
+            msg = Message(
+                "Your Email Verification Code",
+                sender=app.config['MAIL_DEFAULT_SENDER'],
+                recipients=[email]
+            )
+            msg.body = f"Your verification code is: {otp}\n\nThis code will expire in 15 minutes."
+            mail.send(msg)
+            
+            flash('Verification code sent to your email!', 'success')
+            return redirect(url_for('verify_email'))
+            
         except Exception as e:
             app.logger.error(f"Registration error: {str(e)}")
             flash('Registration failed. Please try again.', 'danger')
             return redirect(url_for('register'))
 
     return render_template('register.html')
+@app.route('/resend-otp')
+def resend_otp():
+    if 'pending_email' not in session:
+        flash('Session expired. Please register again.', 'danger')
+        return redirect(url_for('register'))
+    
+    email = session['pending_email']
+    
+    # Delete any existing unused OTPs
+    db.otp_tokens.delete_many({
+        'email': email,
+        'used': False
+    })
+    
+    # Generate new OTP
+    otp = ''.join(random.choices(string.digits, k=6))
+    
+    # Store new OTP
+    db.otp_tokens.insert_one({
+        'email': email,
+        'otp': otp,
+        'created_at': datetime.now(),
+        'expires_at': datetime.now() + timedelta(minutes=15),
+        'used': False
+    })
+    
+    # Resend email
+    msg = Message(
+        "Your New Verification Code",
+        sender=app.config['MAIL_DEFAULT_SENDER'],
+        recipients=[email]
+    )
+    msg.body = f"Your new verification code is: {otp}\n\nThis code will expire in 15 minutes."
+    mail.send(msg)
+    
+    flash('New verification code sent!', 'success')
+    return redirect(url_for('verify_email'))
 
 @app.route('/logout')
 def logout():
@@ -1720,4 +1892,4 @@ def admin_order_pdf_report():
         return redirect(url_for('admin_orders'))
     
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=5000)
+    app.run(debug=True)
