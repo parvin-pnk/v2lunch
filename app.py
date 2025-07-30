@@ -1317,7 +1317,6 @@ def admin_add_food_item(item_type):
                          item_type=item_type,
                          categories=categories[item_type])
 
-# Bill settings and offers
 @app.route('/admin/bill-settings', methods=['GET', 'POST'])
 def admin_bill_settings():
     if not session.get('is_admin'):
@@ -1325,42 +1324,62 @@ def admin_bill_settings():
         return redirect(url_for('login'))
 
     if request.method == 'POST':
-        # Update bill settings
-        db.settings.update_one(
-            {'name': 'billing'},
-            {'$set': {
-                'delivery_fee': float(request.form.get('delivery_fee')),
-                'tax_rate': float(request.form.get('tax_rate')),
+        try:
+            # Update bill settings (always available)
+            settings_data = {
+                'delivery_fee': float(request.form.get('delivery_fee', 2.0)),
+                'tax_rate': float(request.form.get('tax_rate', 5.0)),
                 'special_charges': {
-                    'packaging': float(request.form.get('packaging_charge')),
-                    'service': float(request.form.get('service_charge'))
+                    'packaging': float(request.form.get('packaging_charge', 0.5)),
+                    'service': float(request.form.get('service_charge', 0.0))
                 },
                 'updated_at': datetime.now()
-            }},
-            upsert=True
-        )
+            }
+            
+            db.settings.update_one(
+                {'name': 'billing'},
+                {'$set': settings_data},
+                upsert=True
+            )
 
-        # Handle offers
-        offer = {
-            'name': request.form.get('offer_name'),
-            'discount': float(request.form.get('discount')),
-            'code': request.form.get('offer_code'),
-            'valid_until': datetime.strptime(request.form.get('valid_until'), '%Y-%m-%d'),
-            'is_active': request.form.get('is_active') == 'on'
+            # Only process offer if it's from the modal form
+            if 'offer_name' in request.form:
+                offer_data = {
+                    'name': request.form['offer_name'],
+                    'code': request.form['offer_code'],
+                    'discount': float(request.form['discount']),
+                    'valid_until': datetime.strptime(request.form['valid_until'], '%Y-%m-%d'),
+                    'is_active': request.form.get('is_active') == 'on',
+                    'created_at': datetime.now()
+                }
+                db.offers.insert_one(offer_data)
+                flash('New offer created successfully!', 'success')
+
+            flash('Settings updated successfully!', 'success')
+            return redirect(url_for('admin_bill_settings'))
+
+        except ValueError as e:
+            app.logger.error(f"Invalid input format: {str(e)}")
+            flash('Invalid input format. Please check your values.', 'danger')
+        except Exception as e:
+            app.logger.error(f"Error updating settings: {str(e)}")
+            flash('An error occurred. Please try again.', 'danger')
+
+    # Get current settings with defaults
+    settings = db.settings.find_one({'name': 'billing'}) or {
+        'delivery_fee': 2.0,
+        'tax_rate': 5.0,
+        'special_charges': {
+            'packaging': 0.5,
+            'service': 0.0
         }
-        db.offers.insert_one(offer)
-        
-        flash('Settings updated successfully!', 'success')
-        return redirect(url_for('admin_bill_settings'))
-
-    # Get current settings
-    settings = db.settings.find_one({'name': 'billing'}) or {}
+    }
+    
     current_offers = list(db.offers.find({'valid_until': {'$gte': datetime.now()}}))
     
     return render_template('admin/bill_settings.html',
                          settings=settings,
                          offers=current_offers)
-
 # Delete offer
 @app.route('/admin/offer/delete/<offer_id>')
 def delete_offer(offer_id):
